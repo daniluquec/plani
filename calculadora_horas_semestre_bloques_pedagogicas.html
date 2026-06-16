@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculadora de horas de clase por semestre</title>
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --panel:#ffffff;
+      --ink:#172033;
+      --muted:#627084;
+      --line:#dce2ea;
+      --soft:#eef3f8;
+      --accent:#355c7d;
+      --accent-2:#eef6ff;
+      --ok:#1f7a4d;
+      --warn:#a05a00;
+      --bad:#a33a3a;
+      --shadow:0 10px 30px rgba(23,32,51,.08);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      line-height:1.35;
+    }
+    header{
+      background:linear-gradient(135deg,#203047,#355c7d);
+      color:white;
+      padding:28px 22px;
+    }
+    header .wrap, main{max-width:1180px;margin:0 auto}
+    h1{margin:0 0 8px;font-size:clamp(24px,3vw,34px);letter-spacing:-.02em}
+    header p{margin:0;max-width:940px;color:#e7eef7;font-size:15px}
+    main{padding:22px}
+    section{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+      margin-bottom:18px;
+    }
+    h2{margin:0 0 14px;font-size:19px}
+    h3{margin:18px 0 10px;font-size:15px;color:#26364d}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(12,1fr);
+      gap:12px;
+      align-items:end;
+    }
+    .col-2{grid-column:span 2}
+    .col-3{grid-column:span 3}
+    .col-4{grid-column:span 4}
+    .col-6{grid-column:span 6}
+    .col-8{grid-column:span 8}
+    .col-12{grid-column:span 12}
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin:0 0 5px;
+      font-weight:700;
+    }
+    input, select, textarea{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px 11px;
+      font-size:14px;
+      color:var(--ink);
+      background:white;
+      font-family:Arial, Helvetica, sans-serif;
+    }
+    input[type="checkbox"]{width:auto;transform:translateY(1px)}
+    textarea{min-height:78px;resize:vertical}
+    .hint{font-size:12px;color:var(--muted);margin-top:6px}
+    .buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    button{
+      border:0;
+      background:var(--accent);
+      color:white;
+      padding:10px 13px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:13px;
+    }
+    button.secondary{
+      background:var(--soft);
+      color:var(--ink);
+      border:1px solid var(--line);
+    }
+    button.ghost{
+      background:transparent;
+      color:var(--accent);
+      border:1px solid var(--line);
+    }
+    button.danger{
+      background:#fff0f0;
+      color:var(--bad);
+      border:1px solid #f1c7c7;
+    }
+    button:hover{filter:brightness(.97)}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      border:1px solid var(--line);
+      overflow:hidden;
+      border-radius:12px;
+      background:white;
+    }
+    th,td{
+      border-bottom:1px solid var(--line);
+      padding:9px;
+      text-align:left;
+      vertical-align:middle;
+      font-size:13px;
+    }
+    th{
+      background:#f3f6fa;
+      color:#33445c;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+    tr:last-child td{border-bottom:0}
+    td .small-btn{
+      padding:7px 9px;
+      border-radius:8px;
+      font-size:12px;
+      width:auto;
+    }
+    .table-wrap{overflow-x:auto}
+    .summary{
+      display:grid;
+      grid-template-columns:repeat(6,1fr);
+      gap:12px;
+    }
+    .card{
+      background:var(--accent-2);
+      border:1px solid #d4e7f8;
+      border-radius:14px;
+      padding:14px;
+      min-height:90px;
+    }
+    .card .k{font-size:12px;color:#466078;font-weight:700;margin-bottom:8px}
+    .card .v{font-size:24px;font-weight:800;letter-spacing:-.02em}
+    .card .s{font-size:12px;color:#607086;margin-top:4px}
+    .calendar{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:12px;
+    }
+    .week{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      overflow:hidden;
+    }
+    .week-head{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      background:#f5f7fa;
+      border-bottom:1px solid var(--line);
+      font-size:13px;
+      font-weight:800;
+    }
+    .week-head .muted{font-weight:700;color:var(--muted)}
+    .days{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:0;
+    }
+    .day{
+      min-height:88px;
+      padding:8px;
+      border-right:1px solid #edf0f4;
+      background:#fff;
+    }
+    .day:last-child{border-right:0}
+    .day.out{background:#fafbfc;color:#a0a9b5}
+    .day .date{
+      font-size:12px;
+      font-weight:800;
+      color:#24354d;
+      margin-bottom:6px;
+    }
+    .day.out .date{color:#a0a9b5}
+    .session{
+      display:block;
+      font-size:11px;
+      padding:5px 6px;
+      border-radius:8px;
+      background:#edf6f1;
+      border:1px solid #cfe7d7;
+      color:#24543a;
+      margin:4px 0;
+      word-break:break-word;
+    }
+    .session.off{
+      background:#fff4e8;
+      border-color:#f2d4ad;
+      color:#774500;
+      text-decoration:line-through;
+    }
+    .badge{
+      display:inline-block;
+      border-radius:999px;
+      padding:3px 7px;
+      font-size:11px;
+      font-weight:800;
+      margin:2px 3px 2px 0;
+    }
+    .badge.ok{background:#e7f6ed;color:var(--ok)}
+    .badge.warn{background:#fff1dd;color:var(--warn)}
+    .badge.bad{background:#fdecec;color:var(--bad)}
+    .notice{
+      border:1px solid #d9e6f2;
+      background:#f2f8ff;
+      border-radius:12px;
+      padding:12px;
+      color:#344a64;
+      font-size:13px;
+      margin-top:12px;
+    }
+    .error{
+      border:1px solid #f0bbbb;
+      background:#fff4f4;
+      color:#842b2b;
+      border-radius:12px;
+      padding:12px;
+      font-size:13px;
+      margin-top:12px;
+      display:none;
+    }
+    .actions-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:8px;
+    }
+    .mini{font-size:12px;color:var(--muted)}
+    .empty{
+      text-align:center;
+      color:var(--muted);
+      border:1px dashed var(--line);
+      border-radius:14px;
+      padding:22px;
+      background:#fafbfc;
+    }
+    .block-picker{
+      display:grid;
+      grid-template-columns:repeat(8, minmax(44px, 1fr));
+      gap:6px;
+      min-width:380px;
+    }
+    .block-pill{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:6px 7px;
+      background:#fff;
+      font-size:12px;
+      font-weight:700;
+      color:#34445a;
+      cursor:pointer;
+      user-select:none;
+    }
+    .block-pill input{width:auto;margin:0}
+    .block-pill:has(input:checked){
+      background:#eaf3fb;
+      border-color:#bfd7ee;
+      color:#183a5c;
+    }
+    .block-time{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .block-time input{min-width:98px}
+    .compact-input{max-width:115px}
+    @media (max-width:960px){
+      .summary{grid-template-columns:repeat(3,1fr)}
+      .calendar{grid-template-columns:1fr}
+      .col-2,.col-3,.col-4,.col-6,.col-8{grid-column:span 12}
+      .days{grid-template-columns:1fr}
+      .day{border-right:0;border-bottom:1px solid #edf0f4;min-height:auto}
+      .day:last-child{border-bottom:0}
+      .block-picker{grid-template-columns:repeat(4,1fr);min-width:0}
+    }
+    @media print{
+      header, .no-print, button{display:none !important}
+      body{background:white}
+      main{padding:0}
+      section{box-shadow:none;border:0;border-radius:0;page-break-inside:avoid}
+      .calendar{grid-template-columns:1fr}
+      .week{break-inside:avoid}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Calculadora de horas de clase por semestre</h1>
+      <p>Ingresa el periodo del semestre, define la duración de los bloques 1 a 8, selecciona los bloques semanales de cada curso y agrega fechas sin clases. La herramienta calcula sesiones y horas pedagógicas, y muestra un calendario semanal sintético.</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="no-print">
+      <h2>1. Datos del semestre</h2>
+      <div class="grid">
+        <div class="col-3">
+          <label for="semesterName">Nombre del periodo</label>
+          <input id="semesterName" value="Semestre 2026-2" placeholder="Ej.: Semestre 2026-2">
+        </div>
+        <div class="col-3">
+          <label for="startDate">Inicio del semestre</label>
+          <input id="startDate" type="date" value="2026-07-27">
+        </div>
+        <div class="col-3">
+          <label for="endDate">Cierre del semestre</label>
+          <input id="endDate" type="date" value="2026-12-04">
+        </div>
+        <div class="col-3">
+          <label for="pedMin">Minutos por hora pedagógica</label>
+          <input id="pedMin" type="number" min="1" step="1" value="45" oninput="refreshBlockDurations()">
+          <div class="hint">Todos los totales se calculan en horas pedagógicas según este valor.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="no-print">
+      <div class="actions-row">
+        <h2>2. Definición horaria de bloques</h2>
+        <div class="mini">Edita los horarios si tu colegio usa otra estructura.</div>
+      </div>
+      <div class="table-wrap">
+        <table id="blocksTable">
+          <thead>
+            <tr>
+              <th style="width:100px">Bloque</th>
+              <th style="min-width:130px">Inicio</th>
+              <th style="min-width:130px">Término</th>
+              <th style="min-width:170px">Duración pedagógica</th>
+            </tr>
+          </thead>
+          <tbody id="blocksBody"></tbody>
+        </table>
+      </div>
+      <div class="buttons">
+        <button type="button" class="secondary" onclick="loadDefaultBlocks()">Restaurar bloques sugeridos</button>
+      </div>
+      <div class="hint">Estos horarios sirven para calcular la duración pedagógica de cada bloque seleccionado en el horario del curso.</div>
+    </section>
+
+    <section class="no-print">
+      <div class="actions-row">
+        <h2>3. Horario de clases por bloque</h2>
+        <div class="mini">Selecciona uno o más bloques en el mismo día. Si hay recreo entre bloques, se descuenta automáticamente porque cada bloque usa su propio horario.</div>
+      </div>
+      <div class="table-wrap">
+        <table id="scheduleTable">
+          <thead>
+            <tr>
+              <th style="min-width:150px">Curso / sección</th>
+              <th style="min-width:150px">Asignatura</th>
+              <th style="min-width:120px">Día</th>
+              <th style="min-width:420px">Bloques del curso</th>
+              <th style="min-width:150px">Etiqueta opcional</th>
+              <th style="width:80px">Acción</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleBody"></tbody>
+        </table>
+      </div>
+      <div class="buttons">
+        <button type="button" onclick="addScheduleRow()">Agregar día/curso</button>
+        <button type="button" class="secondary" onclick="loadExampleSchedule()">Cargar ejemplo</button>
+      </div>
+      <div class="hint">Ejemplo: si el curso tiene clases el martes en los bloques 1 y 2, marca ambos bloques en una sola fila. Si el mismo día tiene otro curso o asignatura, agrega otra fila.</div>
+    </section>
+
+    <section class="no-print">
+      <div class="actions-row">
+        <h2>4. Feriados y fechas clave sin clases</h2>
+        <div class="mini">Estas fechas se descuentan si coinciden con un bloque de clases.</div>
+      </div>
+      <div class="table-wrap">
+        <table id="blockedTable">
+          <thead>
+            <tr>
+              <th style="min-width:150px">Fecha</th>
+              <th style="min-width:180px">Tipo</th>
+              <th style="min-width:260px">Motivo</th>
+              <th style="width:80px">Acción</th>
+            </tr>
+          </thead>
+          <tbody id="blockedBody"></tbody>
+        </table>
+      </div>
+      <div class="buttons">
+        <button type="button" onclick="addBlockedRow()">Agregar fecha</button>
+        <button type="button" class="secondary" onclick="loadChile2026Holidays()">Cargar feriados nacionales Chile 2026</button>
+        <button type="button" class="secondary" onclick="loadInstitutionalDates2026()">Cargar fechas institucionales PFP 2026</button>
+        <button type="button" class="danger" onclick="clearBlockedDates()">Vaciar fechas</button>
+      </div>
+      <div class="notice">
+        Los feriados nacionales y fechas institucionales quedan como base editable. Puedes agregar recesos, suspensiones, interferiados, jornadas evaluativas u otras fechas internas sin clases.
+      </div>
+    </section>
+
+    <section class="no-print">
+      <h2>5. Importar fechas en bloque</h2>
+      <div class="grid">
+        <div class="col-12">
+          <label for="bulkDates">Pega fechas sin clases, una por línea</label>
+          <textarea id="bulkDates" placeholder="Formato sugerido:
+2026-09-14 | Semana de vacaciones de septiembre
+2026-09-15 | Semana de vacaciones de septiembre
+2026-09-16 | Semana de vacaciones de septiembre
+2026-09-17 | Semana de vacaciones de septiembre"></textarea>
+          <div class="hint">Acepta líneas con “fecha | motivo”. Si solo pegas una fecha, se agregará como “Fecha clave”.</div>
+        </div>
+      </div>
+      <div class="buttons">
+        <button type="button" class="secondary" onclick="importBlockedDates()">Importar fechas pegadas</button>
+      </div>
+    </section>
+
+    <section class="no-print">
+      <h2>6. Calcular</h2>
+      <div class="buttons">
+        <button type="button" onclick="calculate()">Generar calendario y resumen</button>
+        <button type="button" class="secondary" onclick="saveState()">Guardar en este navegador</button>
+        <button type="button" class="secondary" onclick="loadState()">Recuperar guardado</button>
+        <button type="button" class="secondary" onclick="resetAll()">Reiniciar</button>
+        <button type="button" class="ghost" onclick="window.print()">Imprimir o guardar PDF</button>
+        <button type="button" class="ghost" onclick="exportCSV()">Exportar detalle CSV</button>
+      </div>
+      <div id="errorBox" class="error"></div>
+    </section>
+
+    <section id="resultsSection" style="display:none">
+      <div class="actions-row">
+        <h2 id="resultsTitle">Resumen</h2>
+        <div id="generatedAt" class="mini"></div>
+      </div>
+      <div class="summary" id="summaryCards"></div>
+    </section>
+
+    <section id="calendarSection" style="display:none">
+      <div class="actions-row">
+        <h2>Calendario sintético</h2>
+        <div class="mini">Verde: clase contabilizada. Naranjo: clase descontada por fecha sin clases. Todos los valores se muestran en horas pedagógicas.</div>
+      </div>
+      <div id="calendar" class="calendar"></div>
+    </section>
+
+    <section id="detailSection" style="display:none">
+      <h2>Detalle de sesiones</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Día</th>
+              <th>Curso</th>
+              <th>Asignatura</th>
+              <th>Bloque</th>
+              <th>Horario</th>
+              <th>Horas pedagógicas</th>
+              <th>Estado</th>
+              <th>Motivo descuento</th>
+            </tr>
+          </thead>
+          <tbody id="detailBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+<script>
+const DAYS = [
+  {v:1, short:"Lu", long:"Lunes"},
+  {v:2, short:"Ma", long:"Martes"},
+  {v:3, short:"Mi", long:"Miércoles"},
+  {v:4, short:"Ju", long:"Jueves"},
+  {v:5, short:"Vi", long:"Viernes"},
+  {v:6, short:"Sa", long:"Sábado"},
+  {v:0, short:"Do", long:"Domingo"}
+];
+
+const DEFAULT_BLOCKS = [
+  {block:1, start:"08:00", end:"08:45"},
+  {block:2, start:"08:45", end:"09:30"},
+  {block:3, start:"09:45", end:"10:30"},
+  {block:4, start:"10:30", end:"11:15"},
+  {block:5, start:"11:30", end:"12:15"},
+  {block:6, start:"12:15", end:"13:00"},
+  {block:7, start:"14:00", end:"14:45"},
+  {block:8, start:"14:45", end:"15:30"}
+];
+
+const CHILE_2026_HOLIDAYS = [
+  ["2026-01-01","Feriado nacional","Año Nuevo"],
+  ["2026-04-03","Feriado nacional","Viernes Santo"],
+  ["2026-04-04","Feriado nacional","Sábado Santo"],
+  ["2026-05-01","Feriado nacional","Día Nacional del Trabajo"],
+  ["2026-05-21","Feriado nacional","Día de las Glorias Navales"],
+  ["2026-06-21","Feriado nacional","Día Nacional de los Pueblos Indígenas"],
+  ["2026-06-29","Feriado nacional","San Pedro y San Pablo"],
+  ["2026-07-16","Feriado nacional","Día de la Virgen del Carmen"],
+  ["2026-08-15","Feriado nacional","Asunción de la Virgen"],
+  ["2026-09-18","Feriado nacional","Independencia Nacional"],
+  ["2026-09-19","Feriado nacional","Día de las Glorias del Ejército"],
+  ["2026-10-12","Feriado nacional","Encuentro de Dos Mundos"],
+  ["2026-10-31","Feriado nacional","Día de las Iglesias Evangélicas y Protestantes"],
+  ["2026-11-01","Feriado nacional","Día de Todos los Santos"],
+  ["2026-12-08","Feriado nacional","Inmaculada Concepción"],
+  ["2026-12-25","Feriado nacional","Navidad"]
+];
+
+const INSTITUTIONAL_DATES_2026 = [
+  ["2026-07-17","Receso institucional","Interferiado 16 de julio"],
+  ["2026-09-14","Receso institucional","Semana de vacaciones de septiembre"],
+  ["2026-09-15","Receso institucional","Semana de vacaciones de septiembre"],
+  ["2026-09-16","Receso institucional","Semana de vacaciones de septiembre"],
+  ["2026-09-17","Receso institucional","Semana de vacaciones de septiembre"],
+  ["2026-10-16","Suspensión de clases","Día del profe"]
+];
+
+let lastRecords = [];
+
+function el(id){ return document.getElementById(id); }
+
+function parseISO(s){
+  if(!s) return null;
+  const parts = s.split("-").map(Number);
+  if(parts.length !== 3 || parts.some(isNaN)) return null;
+  return new Date(parts[0], parts[1]-1, parts[2], 12, 0, 0, 0);
+}
+function toISO(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+function addDays(d,n){
+  const x = new Date(d);
+  x.setDate(x.getDate()+n);
+  return x;
+}
+function sameOrBefore(a,b){ return a.getTime() <= b.getTime(); }
+function dayNameFromDate(d){
+  const js = d.getDay();
+  const item = DAYS.find(x => x.v === js);
+  return item ? item.long : "";
+}
+function dayShortFromDate(d){
+  const js = d.getDay();
+  const item = DAYS.find(x => x.v === js);
+  return item ? item.short : "";
+}
+function formatDateCL(iso){
+  const d = parseISO(iso);
+  if(!d) return iso;
+  return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+}
+function formatDateShort(iso){
+  const d = parseISO(iso);
+  if(!d) return iso;
+  return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+function minutesBetween(start,end){
+  if(!start || !end) return 0;
+  const [sh,sm] = start.split(":").map(Number);
+  const [eh,em] = end.split(":").map(Number);
+  let a = sh*60 + sm;
+  let b = eh*60 + em;
+  if(b < a) b += 24*60;
+  return Math.max(0, b-a);
+}
+function hours(n){ return (n/60); }
+function pedagogicHoursFromMinutes(minutes, pedMin){ return minutes / pedMin; }
+function fmtNumber(n, digits=2){
+  return Number(n || 0).toLocaleString("es-CL", {minimumFractionDigits:digits, maximumFractionDigits:digits});
+}
+function getMonday(d){
+  const x = new Date(d);
+  const day = x.getDay();
+  const diff = (day === 0 ? -6 : 1 - day);
+  x.setDate(x.getDate() + diff);
+  x.setHours(12,0,0,0);
+  return x;
+}
+function escapeHTML(s){
+  return String(s ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+  }[c]));
+}
+
+function addBlockRow(data){
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><strong>Bloque ${data.block}</strong></td>
+    <td><input class="block-start compact-input" type="time" value="${escapeHTML(data.start)}" data-block="${data.block}" oninput="updateBlockDuration(this.closest('tr'))"></td>
+    <td><input class="block-end compact-input" type="time" value="${escapeHTML(data.end)}" data-block="${data.block}" oninput="updateBlockDuration(this.closest('tr'))"></td>
+    <td class="block-duration">${fmtNumber(pedagogicHoursFromMinutes(minutesBetween(data.start,data.end), Number(el("pedMin").value) || 45))} h ped.</td>
+  `;
+  el("blocksBody").appendChild(tr);
+}
+
+function updateBlockDuration(tr){
+  const start = tr.querySelector(".block-start").value;
+  const end = tr.querySelector(".block-end").value;
+  tr.querySelector(".block-duration").textContent = `${fmtNumber(pedagogicHoursFromMinutes(minutesBetween(start,end), Number(el("pedMin").value) || 45))} h ped.`;
+}
+
+function refreshBlockDurations(){
+  Array.from(el("blocksBody").querySelectorAll("tr")).forEach(updateBlockDuration);
+}
+
+function loadDefaultBlocks(){
+  el("blocksBody").innerHTML = "";
+  DEFAULT_BLOCKS.forEach(addBlockRow);
+}
+
+function getBlocks(){
+  return Array.from(el("blocksBody").querySelectorAll("tr")).map(tr => {
+    const startInput = tr.querySelector(".block-start");
+    const endInput = tr.querySelector(".block-end");
+    return {
+      block: Number(startInput.dataset.block),
+      start: startInput.value,
+      end: endInput.value,
+      minutes: minutesBetween(startInput.value, endInput.value)
+    };
+  });
+}
+
+function getBlockMap(){
+  const map = new Map();
+  getBlocks().forEach(b => map.set(b.block, b));
+  return map;
+}
+
+function blockPickerHTML(selected=[]){
+  const selectedSet = new Set((selected || []).map(Number));
+  return `<div class="block-picker">
+    ${Array.from({length:8}, (_,i) => i+1).map(n => `
+      <label class="block-pill">
+        <input type="checkbox" class="block-check" value="${n}" ${selectedSet.has(n) ? "checked" : ""}>
+        ${n}
+      </label>
+    `).join("")}
+  </div>`;
+}
+
+function addScheduleRow(data={}){
+  const tr = document.createElement("tr");
+  const dayOptions = DAYS.map(d => `<option value="${d.v}" ${String(data.day ?? 1)===String(d.v) ? "selected" : ""}>${d.long}</option>`).join("");
+  tr.innerHTML = `
+    <td><input class="course" value="${escapeHTML(data.course || "")}" placeholder="Ej.: 7° básico"></td>
+    <td><input class="subject" value="${escapeHTML(data.subject || "")}" placeholder="Ej.: Historia"></td>
+    <td><select class="day">${dayOptions}</select></td>
+    <td>${blockPickerHTML(data.blocks || [])}</td>
+    <td><input class="label" value="${escapeHTML(data.label || "")}" placeholder="Ej.: Curso foco"></td>
+    <td><button class="small-btn danger" type="button" onclick="this.closest('tr').remove()">Quitar</button></td>
+  `;
+  el("scheduleBody").appendChild(tr);
+}
+
+function addBlockedRow(data={}){
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input class="bdate" type="date" value="${escapeHTML(data.date || "")}"></td>
+    <td>
+      <select class="btype">
+        ${["Feriado nacional","Receso institucional","Suspensión de clases","Evaluación / hito","Fecha clave"].map(t => `<option ${data.type===t ? "selected" : ""}>${t}</option>`).join("")}
+      </select>
+    </td>
+    <td><input class="breason" value="${escapeHTML(data.reason || "")}" placeholder="Motivo"></td>
+    <td><button class="small-btn danger" type="button" onclick="this.closest('tr').remove()">Quitar</button></td>
+  `;
+  el("blockedBody").appendChild(tr);
+}
+
+function loadExampleSchedule(){
+  el("scheduleBody").innerHTML = "";
+  addScheduleRow({course:"7° básico", subject:"Historia", day:2, blocks:[1,2], label:"Curso foco"});
+  addScheduleRow({course:"7° básico", subject:"Historia", day:4, blocks:[5,6], label:"Curso foco"});
+}
+
+function addDatesNoDuplicates(rows){
+  const existing = new Set(getBlockedDates().map(x => x.date + "|" + x.reason));
+  rows.forEach(([date,type,reason]) => {
+    const key = date + "|" + reason;
+    if(!existing.has(key)){
+      addBlockedRow({date,type,reason});
+      existing.add(key);
+    }
+  });
+}
+
+function loadChile2026Holidays(){
+  addDatesNoDuplicates(CHILE_2026_HOLIDAYS);
+}
+
+function loadInstitutionalDates2026(){
+  addDatesNoDuplicates(INSTITUTIONAL_DATES_2026);
+}
+
+function clearBlockedDates(){
+  if(confirm("¿Quieres eliminar todas las fechas sin clases?")){
+    el("blockedBody").innerHTML = "";
+  }
+}
+
+function importBlockedDates(){
+  const raw = el("bulkDates").value.trim();
+  if(!raw) return;
+  raw.split(/\n+/).forEach(line => {
+    const clean = line.trim();
+    if(!clean) return;
+    let date = "";
+    let reason = "Fecha clave";
+    if(clean.includes("|")){
+      const parts = clean.split("|");
+      date = parts[0].trim();
+      reason = parts.slice(1).join("|").trim() || "Fecha clave";
+    } else {
+      date = clean.trim();
+    }
+    if(/^\d{4}-\d{2}-\d{2}$/.test(date)){
+      addBlockedRow({date, type:"Fecha clave", reason});
+    }
+  });
+  el("bulkDates").value = "";
+}
+
+function getSchedule(){
+  return Array.from(el("scheduleBody").querySelectorAll("tr")).map(tr => ({
+    course: tr.querySelector(".course").value.trim(),
+    subject: tr.querySelector(".subject").value.trim(),
+    day: Number(tr.querySelector(".day").value),
+    blocks: Array.from(tr.querySelectorAll(".block-check:checked")).map(x => Number(x.value)).sort((a,b) => a-b),
+    label: tr.querySelector(".label").value.trim()
+  })).filter(x => x.blocks.length > 0);
+}
+
+function getBlockedDates(){
+  return Array.from(el("blockedBody").querySelectorAll("tr")).map(tr => ({
+    date: tr.querySelector(".bdate").value,
+    type: tr.querySelector(".btype").value,
+    reason: tr.querySelector(".breason").value.trim()
+  })).filter(x => x.date);
+}
+
+function validate(start,end,schedule,blocks,pedMin){
+  const errors = [];
+  if(!start || !end) errors.push("Debes ingresar inicio y cierre del semestre.");
+  if(start && end && start.getTime() > end.getTime()) errors.push("La fecha de inicio no puede ser posterior al cierre.");
+  if(!schedule.length) errors.push("Debes ingresar al menos un día/curso con uno o más bloques seleccionados.");
+  if(!pedMin || pedMin <= 0) errors.push("Los minutos por hora pedagógica deben ser mayores que cero.");
+  blocks.forEach(b => {
+    if(!b.start || !b.end || b.minutes <= 0) errors.push(`El bloque ${b.block} no tiene una duración válida.`);
+  });
+  const blockNums = new Set(blocks.map(b => b.block));
+  schedule.forEach((s,i) => {
+    s.blocks.forEach(b => {
+      if(!blockNums.has(b)) errors.push(`La fila ${i+1} usa el bloque ${b}, pero no está definido.`);
+    });
+  });
+  return errors;
+}
+
+function calculate(){
+  const start = parseISO(el("startDate").value);
+  const end = parseISO(el("endDate").value);
+  const schedule = getSchedule();
+  const blocks = getBlocks();
+  const blockMap = getBlockMap();
+  const blocked = getBlockedDates();
+  const pedMin = Number(el("pedMin").value);
+  const errors = validate(start,end,schedule,blocks,pedMin);
+  const errorBox = el("errorBox");
+  if(errors.length){
+    errorBox.style.display = "block";
+    errorBox.innerHTML = errors.map(e => `<div>${escapeHTML(e)}</div>`).join("");
+    return;
+  }
+  errorBox.style.display = "none";
+
+  const blockedMap = new Map();
+  blocked.forEach(b => {
+    if(!blockedMap.has(b.date)) blockedMap.set(b.date, []);
+    blockedMap.get(b.date).push(`${b.type}: ${b.reason || "sin motivo"}`);
+  });
+
+  const records = [];
+  for(let d = new Date(start); sameOrBefore(d,end); d = addDays(d,1)){
+    const iso = toISO(d);
+    const jsDay = d.getDay();
+    const dayRows = schedule.filter(s => s.day === jsDay);
+    const reasons = blockedMap.get(iso) || [];
+    dayRows.forEach(s => {
+      s.blocks.forEach(blockNum => {
+        const block = blockMap.get(blockNum);
+        const minutes = block ? block.minutes : 0;
+        records.push({
+          date: iso,
+          dateDisplay: formatDateCL(iso),
+          dayName: dayNameFromDate(d),
+          dayShort: dayShortFromDate(d),
+          course: s.course || "Sin curso",
+          subject: s.subject || "Sin asignatura",
+          label: s.label,
+          block: blockNum,
+          start: block ? block.start : "",
+          end: block ? block.end : "",
+          minutes,
+          blocked: reasons.length > 0,
+          reason: reasons.join("; "),
+          weekStart: toISO(getMonday(d))
+        });
+      });
+    });
+  }
+  lastRecords = records;
+  renderResults(records, schedule, blocked, start, end, pedMin);
+}
+
+function renderResults(records, schedule, blocked, start, end, pedMin){
+  const counted = records.filter(r => !r.blocked);
+  const discounted = records.filter(r => r.blocked);
+  const totalMinutes = counted.reduce((sum,r) => sum + r.minutes, 0);
+  const plannedMinutes = records.reduce((sum,r) => sum + r.minutes, 0);
+  const discountedMinutes = discounted.reduce((sum,r) => sum + r.minutes, 0);
+  const weeks = new Set(records.map(r => r.weekStart)).size;
+  const sessionDays = new Set(counted.map(r => r.date)).size;
+  const blockedSessionDays = new Set(discounted.map(r => r.date)).size;
+
+  el("resultsTitle").textContent = `Resumen: ${el("semesterName").value || "Periodo sin nombre"}`;
+  el("generatedAt").textContent = `Generado el ${new Date().toLocaleString("es-CL")}`;
+
+  const cards = [
+    ["Bloques contabilizados", counted.length, `${records.length} planificados antes de descuentos`],
+    ["Horas pedagógicas", fmtNumber(pedagogicHoursFromMinutes(totalMinutes, pedMin)), `Descontadas: ${fmtNumber(pedagogicHoursFromMinutes(discountedMinutes, pedMin))} h ped.`],
+    ["Base de cálculo", `${pedMin} min`, "Minutos por hora pedagógica"],
+    ["Días con clase", sessionDays, `${blockedSessionDays} día(s) con clases descontadas`],
+    ["Semanas con horario", weeks, `Entre ${formatDateCL(toISO(start))} y ${formatDateCL(toISO(end))}`],
+    ["Fechas sin clases cargadas", blocked.length, "Solo descuentan cuando coinciden con clases"]
+  ];
+  el("summaryCards").innerHTML = cards.map(([k,v,s]) => `
+    <div class="card">
+      <div class="k">${escapeHTML(k)}</div>
+      <div class="v">${escapeHTML(v)}</div>
+      <div class="s">${escapeHTML(s)}</div>
+    </div>
+  `).join("");
+
+  renderCalendar(records, start, end, pedMin);
+  renderDetail(records, pedMin);
+
+  el("resultsSection").style.display = "block";
+  el("calendarSection").style.display = "block";
+  el("detailSection").style.display = "block";
+  setTimeout(() => el("resultsSection").scrollIntoView({behavior:"smooth", block:"start"}), 100);
+}
+
+function renderCalendar(records, start, end, pedMin){
+  const cal = el("calendar");
+  if(!records.length){
+    cal.innerHTML = `<div class="empty">No hay bloques dentro del rango seleccionado.</div>`;
+    return;
+  }
+  const recByDate = new Map();
+  records.forEach(r => {
+    if(!recByDate.has(r.date)) recByDate.set(r.date, []);
+    recByDate.get(r.date).push(r);
+  });
+
+  const firstMonday = getMonday(start);
+  const lastMonday = getMonday(end);
+  let html = "";
+  for(let w = new Date(firstMonday); sameOrBefore(w,lastMonday); w = addDays(w,7)){
+    const weekDays = Array.from({length:7}, (_,i) => addDays(w,i));
+    const weekRecs = weekDays.flatMap(d => recByDate.get(toISO(d)) || []);
+    const countedMin = weekRecs.filter(r => !r.blocked).reduce((s,r)=>s+r.minutes,0);
+    const discountMin = weekRecs.filter(r => r.blocked).reduce((s,r)=>s+r.minutes,0);
+
+    html += `<div class="week">
+      <div class="week-head">
+        <span>Semana del ${formatDateShort(toISO(w))}</span>
+        <span class="muted">${fmtNumber(pedagogicHoursFromMinutes(countedMin, pedMin))} h ped. <span class="badge warn">${discountMin ? "-" + fmtNumber(pedagogicHoursFromMinutes(discountMin, pedMin)) + " h ped." : "sin descuento"}</span></span>
+      </div>
+      <div class="days">`;
+    weekDays.forEach(d => {
+      const iso = toISO(d);
+      const out = d.getTime() < start.getTime() || d.getTime() > end.getTime();
+      const recs = (recByDate.get(iso) || []).sort((a,b) => a.block - b.block);
+      html += `<div class="day ${out ? "out" : ""}">
+        <div class="date">${dayShortFromDate(d)} ${formatDateShort(iso)}</div>`;
+      if(recs.length){
+        recs.forEach(r => {
+          const label = r.label ? ` · ${r.label}` : "";
+          const title = `${r.course} · ${r.subject}${label}`;
+          const h = fmtNumber(pedagogicHoursFromMinutes(r.minutes, pedMin));
+          html += `<span class="session ${r.blocked ? "off" : ""}" title="${escapeHTML(r.reason || "Clase contabilizada")}">
+            B${escapeHTML(r.block)} · ${escapeHTML(r.start)}-${escapeHTML(r.end)} · ${escapeHTML(title)} · ${h} h ped.
+          </span>`;
+          if(r.blocked){
+            html += `<span class="badge warn">${escapeHTML(r.reason)}</span>`;
+          }
+        });
+      }
+      html += `</div>`;
+    });
+    html += `</div></div>`;
+  }
+  cal.innerHTML = html;
+}
+
+function renderDetail(records, pedMin){
+  const body = el("detailBody");
+  if(!records.length){
+    body.innerHTML = `<tr><td colspan="9">No hay sesiones para mostrar.</td></tr>`;
+    return;
+  }
+  body.innerHTML = records.sort((a,b) => (a.date.localeCompare(b.date) || a.block - b.block)).map(r => `
+    <tr>
+      <td>${escapeHTML(r.dateDisplay)}</td>
+      <td>${escapeHTML(r.dayName)}</td>
+      <td>${escapeHTML(r.course)}</td>
+      <td>${escapeHTML(r.subject)}</td>
+      <td>Bloque ${escapeHTML(r.block)}</td>
+      <td>${escapeHTML(r.start)}-${escapeHTML(r.end)}</td>
+      <td>${fmtNumber(pedagogicHoursFromMinutes(r.minutes, pedMin))}</td>
+      <td>${r.blocked ? '<span class="badge warn">Descontada</span>' : '<span class="badge ok">Contabilizada</span>'}</td>
+      <td>${escapeHTML(r.reason || "")}</td>
+    </tr>
+  `).join("");
+}
+
+function currentState(){
+  return {
+    semesterName: el("semesterName").value,
+    startDate: el("startDate").value,
+    endDate: el("endDate").value,
+    pedMin: el("pedMin").value,
+    blocks: getBlocks().map(b => ({block:b.block, start:b.start, end:b.end})),
+    schedule: getSchedule(),
+    blocked: getBlockedDates()
+  };
+}
+
+function saveState(){
+  localStorage.setItem("calculadoraHorasSemestreBloques", JSON.stringify(currentState()));
+  alert("Datos guardados en este navegador.");
+}
+
+function loadState(){
+  const raw = localStorage.getItem("calculadoraHorasSemestreBloques");
+  if(!raw){
+    alert("No hay datos guardados en este navegador.");
+    return;
+  }
+  applyState(JSON.parse(raw));
+  calculate();
+}
+
+function applyState(state){
+  el("semesterName").value = state.semesterName || "";
+  el("startDate").value = state.startDate || "";
+  el("endDate").value = state.endDate || "";
+  el("pedMin").value = state.pedMin || "45";
+
+  el("blocksBody").innerHTML = "";
+  const blocks = state.blocks && state.blocks.length ? state.blocks : DEFAULT_BLOCKS;
+  blocks.forEach(addBlockRow);
+
+  el("scheduleBody").innerHTML = "";
+  (state.schedule || []).forEach(addScheduleRow);
+
+  el("blockedBody").innerHTML = "";
+  (state.blocked || []).forEach(addBlockedRow);
+}
+
+function resetAll(){
+  if(!confirm("¿Quieres reiniciar el formulario?")) return;
+  localStorage.removeItem("calculadoraHorasSemestreBloques");
+  el("semesterName").value = "Semestre 2026-2";
+  el("startDate").value = "2026-07-27";
+  el("endDate").value = "2026-12-04";
+  el("pedMin").value = "45";
+  loadDefaultBlocks();
+  el("scheduleBody").innerHTML = "";
+  el("blockedBody").innerHTML = "";
+  addScheduleRow({course:"", subject:"", day:1, blocks:[1,2], label:""});
+  loadChile2026Holidays();
+  loadInstitutionalDates2026();
+  el("resultsSection").style.display = "none";
+  el("calendarSection").style.display = "none";
+  el("detailSection").style.display = "none";
+  el("errorBox").style.display = "none";
+}
+
+function exportCSV(){
+  if(!lastRecords.length){
+    calculate();
+  }
+  if(!lastRecords.length) return;
+  const headers = ["fecha","dia","curso","asignatura","bloque","inicio","termino","horas_pedagogicas","estado","motivo_descuento"];
+  const rows = lastRecords.map(r => [
+    r.date,
+    r.dayName,
+    r.course,
+    r.subject,
+    r.block,
+    r.start,
+    r.end,
+    fmtNumber(pedagogicHoursFromMinutes(r.minutes, Number(el("pedMin").value) || 45)),
+    r.blocked ? "descontada" : "contabilizada",
+    r.reason || ""
+  ]);
+  const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(";")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "detalle_horas_pedagogicas_semestre_por_bloques.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadDefaultBlocks();
+  addScheduleRow({course:"", subject:"", day:1, blocks:[1,2], label:""});
+  loadChile2026Holidays();
+  loadInstitutionalDates2026();
+});
+</script>
+</body>
+</html>
